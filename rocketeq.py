@@ -21,12 +21,30 @@ distance = quad(lambda t : solve.sol(t), 0, 9)
 
 print(distance)
 
-# twr - thrust to weight ratio ; g - gravitational acceleration ; v[0] - speed ; v[1] - angle between vertical axis and velocity vector
-def gravity_turn(t, v, twr, g):
-    return [g*twr - (g * np.cos(v[1])), (g/v[0]) * np.sin(v[1])]
+# System of differential equations for gravity turn:
+# parameters: I_sp = specific impulse, m0 = initial mass, m_dry = final mass, burn_time = burn time, g = gravity
+# variables: v = velocity, beta = angle between vertical and velocity vector, m = mass
+# --------------------------------
+# dv/dt = ((g * I_sp) * (dm/dt))/ m) - g*cos(beta)
+# dbeta/dt = (g/v)*sin(beta)
+# dm/dt = (m_dry - m0) / burn_time
+
+# v[0] - speed ; v[1] - angle between vertical axis and velocity vector v[2] = mass
+def gravity_turn(t, v, I_sp, m0, m_dry, burn_time, g):
+    return [((g * I_sp * -((m_dry - m0) / burn_time))/ v[2]) - (g * np.cos(v[1])), (g/v[0]) * np.sin(v[1]), (m_dry - m0) / burn_time]
 
 
-solve_gravity_turn = solve_ivp(gravity_turn, (0,500), [60,(17 * np.pi / 180)], args=(2.97, 9.8), dense_output=True)
+start_time = 10
+
+I_sp = 250 # seconds
+m0 = 69000
+m_dry = 36800
+burn_time = 70 - start_time
+gravity = 9.8
+
+
+
+solve_gravity_turn = solve_ivp(gravity_turn, (start_time, burn_time), [60,(17 * np.pi / 180), m0], args=(I_sp, m0, m_dry, burn_time, gravity), dense_output=True)
 
 f2 = plt.figure(2)
 plt.plot(solve_gravity_turn.t, solve_gravity_turn.y[0], label=f'$v(t)$')
@@ -38,15 +56,26 @@ plt.plot(solve_gravity_turn.t, solve_gravity_turn.y[1], label=f'$\\beta(t)$')
 plt.xlabel('$t$')
 plt.legend()
 
+
+
 f4 = plt.figure(4)
-x = np.linspace(0,500,500)
+x = np.linspace(start_time,burn_time,burn_time)
 y = np.array(list(map(lambda t : quad(lambda v : (solve_gravity_turn.sol(v)[0] * np.cos(solve_gravity_turn.sol(v)[1])), 0, t)[0], x)))
 
 print(x.shape)
 print(y.shape)
 print(y[0])
 
-plt.scatter(x,y)
+plt.scatter(x,y, label=f'$h(t)$')
+plt.xlabel("$t")
+plt.legend()
+
+
+f5 = plt.figure(5)
+plt.plot(solve_gravity_turn.t, solve_gravity_turn.y[2], label=f'$m(t)$')
+plt.xlabel('$t$')
+plt.legend()
+
 
 plt.show()
 
