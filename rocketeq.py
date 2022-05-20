@@ -34,17 +34,19 @@ def gravity_turn(t, v, I_sp, m0, m_dry, burn_time, g):
     return [((g * I_sp * -((m_dry - m0) / burn_time))/ v[2]) - (g * np.cos(v[1])), (g/v[0]) * np.sin(v[1]), (m_dry - m0) / burn_time]
 
 
-start_time = 10
+start_time = 15
+start_height = 787
+end_time = 70
 
-I_sp = 250 # seconds
-m0 = 69000
+I_sp = 218 # seconds
+m0 = 67600
 m_dry = 36800
 burn_time = 70 - start_time
 gravity = 9.8
 
 
 
-solve_gravity_turn = solve_ivp(gravity_turn, (start_time, burn_time), [60,(17 * np.pi / 180), m0], args=(I_sp, m0, m_dry, burn_time, gravity), dense_output=True)
+solve_gravity_turn = solve_ivp(gravity_turn, (start_time, end_time), [96.8,(17 * np.pi / 180), m0], args=(I_sp, m0, m_dry, burn_time, gravity), dense_output=True)
 
 f2 = plt.figure(2)
 plt.plot(solve_gravity_turn.t, solve_gravity_turn.y[0], label=f'$v(t)$')
@@ -59,8 +61,8 @@ plt.legend()
 
 
 f4 = plt.figure(4)
-x = np.linspace(start_time,burn_time,burn_time)
-y = np.array(list(map(lambda t : quad(lambda v : (solve_gravity_turn.sol(v)[0] * np.cos(solve_gravity_turn.sol(v)[1])), 0, t)[0], x)))
+x = np.linspace(start_time,end_time,end_time)
+y = np.array(list(map(lambda t : start_height + quad(lambda v : (solve_gravity_turn.sol(v)[0] * np.cos(solve_gravity_turn.sol(v)[1])), start_time, t)[0], x)))
 
 print(x.shape)
 print(y.shape)
