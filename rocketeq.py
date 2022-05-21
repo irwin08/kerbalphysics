@@ -34,12 +34,14 @@ print(distance)
 
 # v[0] - speed ; v[1] - angle between vertical axis and velocity vector v[2] = mass ; v[3] = height ; v[4] = atmospheric
 #  (rho) ; v[5] = gravitational acceleration
+# drag part of v:  - ((1/2) * v[4] * v[0]**2 * d * A)
+# reference angle part of beta: - (v[0] * np.sin(v[1]))/(R + v[3])
 def gravity_turn(t, v, I_sp, m0, m_dry, burn_time, G, rho_0, d, A, H, R, M):
-    return [(((v[5] * I_sp * -((m_dry - m0) / burn_time)) - ((1/2) * v[4] * v[0]**2 * d * A))/ v[2]) - (v[5] * np.cos(v[1])), (v[5]/v[0]) * np.sin(v[1]), (m_dry - m0) / burn_time, v[0] * np.cos(v[1]), rho_0 * np.exp(-(v[3]/H)), -(G*M / ((R + v[3])**3)) * (v[0] * np.cos(v[1]))]
+    return [(((v[5] * I_sp * -((m_dry - m0) / burn_time))  - ((1/2) * v[4] * v[0]**2 * d * A))/ v[2]) - (v[5] * np.cos(v[1])), (v[5]/v[0]) * np.sin(v[1])  , (m_dry - m0) / burn_time, v[0] * np.cos(v[1]), rho_0 * np.exp(-(v[3]/H)), -(G*M / ((R + v[3])**3)) * (v[0] * np.cos(v[1]))]
 
 
-start_time = 15
-start_height = 787
+start_time = 20
+start_height = 1348
 end_time = 70
 
 G = 6.67e-11
@@ -48,16 +50,16 @@ planet_mass = 5.29e22
 planet_radius = 600000
 
 I_sp = 218 # seconds
-m0 = 67600
-m_dry = 36800
+m0 = 64779
+m_dry = 34374
 burn_time = 70 - start_time
-gravity = 9.8
-rho_0 = 1
-d = 0.3
+gravity = 9.77
+rho_0 = 0.65
+d = 0.08
 A = 1
 H = 70000
 
-solve_gravity_turn = solve_ivp(gravity_turn, (start_time, end_time), [96.8,(17 * np.pi / 180), m0, start_height, rho_0, gravity], args=(I_sp, m0, m_dry, burn_time, G, rho_0, d, A, H, planet_radius, planet_mass), dense_output=True)
+solve_gravity_turn = solve_ivp(gravity_turn, (start_time, end_time), [138.5,(18 * np.pi / 180), m0, start_height, rho_0, gravity], args=(I_sp, m0, m_dry, burn_time, G, rho_0, d, A, H, planet_radius, planet_mass), dense_output=True)
 
 f2 = plt.figure(2)
 plt.plot(solve_gravity_turn.t, solve_gravity_turn.y[0], label=f'$v(t)$')
@@ -99,6 +101,8 @@ f6 = plt.figure(6)
 plt.plot(solve_gravity_turn.t, solve_gravity_turn.y[5], label=f'$g(t)$')
 plt.xlabel('$t$')
 plt.legend()
+
+print("HEIGHT at 70s ", solve_gravity_turn.y[3][-1])
 
 
 plt.show()
